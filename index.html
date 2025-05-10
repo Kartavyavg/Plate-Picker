@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal Decision App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            clifford: '#da373d',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-top: 4px solid #3490dc;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      animation: spin 1s linear infinite;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full">
+    <h1 class="text-4xl font-extrabold mb-8 text-center text-gray-800">Meal Decision App</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Left Column: Food Items List -->
+      <div>
+        <h2 class="text-2xl font-semibold mb-3 text-gray-800">Food Items:</h2>
+        <ul id="food-items" class="list-disc list-inside text-gray-700 bg-gray-50 p-4 rounded-lg shadow-inner">
+          <!-- Food items will be dynamically inserted here -->
+        </ul>
+
+        <!-- Buttons for Viewing Food Items -->
+        <div class="space-y-2 mt-8">
+          <button id="view-all" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 w-full">View All Items</button>
+          <button id="view-breakfast" class="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-300 w-full">View Breakfast</button>
+          <button id="view-lunch" class="bg-yellow-600 text-white py-2 px-4 rounded-md hover:bg-yellow-700 transition duration-300 w-full">View Lunch</button>
+          <button id="view-dinner" class="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-300 w-full">View Dinner</button>
+        </div>
+      </div>
+
+      <!-- Right Column: Form for Adding and Selecting Meals -->
+      <div class="space-y-4">
+        <!-- Form to Add Food Items -->
+        <form id="add-food-form" class="space-y-4 mb-8">
+          <div>
+            <label for="food-item" class="block text-gray-700 text-lg font-semibold">Food Item:</label>
+            <input type="text" id="food-item" class="form-input mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" placeholder="Enter food item">
+          </div>
+          <div>
+            <label for="meal-time" class="block text-gray-700 text-lg font-semibold">Meal Time:</label>
+            <select id="meal-time" class="form-select mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+            </select>
+          </div>
+          <div>
+            <label for="diet" class="block text-gray-700 text-lg font-semibold">Diet:</label>
+            <select id="diet" class="form-select mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+              <option value="veg">Vegetarian</option>
+              <option value="non-veg">Non-Vegetarian</option>
+            </select>
+          </div>
+          <button type="button" id="add-food" class="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-300 w-full">Add Item</button>
+        </form>
+
+        <!-- Meal Selection Form -->
+        <form id="meal-form" class="space-y-4">
+          <div>
+            <label for="meal-time-select" class="block text-gray-700 text-lg font-semibold">Meal Time:</label>
+            <select id="meal-time-select" class="form-select mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+            </select>
+          </div>
+          <div>
+            <label for="diet-select" class="block text-gray-700 text-lg font-semibold">Diet:</label>
+            <select id="diet-select" class="form-select mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+              <option value="veg">Vegetarian</option>
+              <option value="non-veg">Non-Vegetarian</option>
+            </select>
+          </div>
+          <button type="button" id="generate-meal" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 w-full">Spin the Wheel!</button>
+        </form>
+
+        <!-- Spinner and Result -->
+        <div id="spinner-container" class="mt-6 flex justify-center items-center">
+          <div id="spinner" class="spinner hidden"></div>
+        </div>
+        <div id="result" class="mt-6 text-center text-gray-800 text-xl font-semibold"></div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+      <div class="modal-content text-center">
+        <h2 class="text-2xl font-semibold mb-4">Error</h2>
+        <p id="modal-message" class="text-gray-700 mb-4">Please add at least 10 items for the selected criteria.</p>
+        <button id="close-modal" class="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-300">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const foodItems = JSON.parse(localStorage.getItem('foodItems')) || {
+      veg: { breakfast: [], lunch: [], dinner: [] },
+      'non-veg': { breakfast: [], lunch: [], dinner: [] }
+    };
+
+    function updateFoodList() {
+      const diet = document.getElementById('diet-select').value;
+      const items = Object.values(foodItems[diet]).flat();
+      const foodItemsList = document.getElementById('food-items');
+      
+      foodItemsList.innerHTML = items.length > 0 ? 
+        items.map(item => `<li class="py-1">${item}</li>`).join('') : 
+        `<li class="py-1 text-gray-500">No items available</li>`;
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem('foodItems', JSON.stringify(foodItems));
+    }
+
+    function filterFoodItems(mealTime) {
+      const diet = document.getElementById('diet-select').value;
+      const items = foodItems[diet][mealTime];
+      const foodItemsList = document.getElementById('food-items');
+      
+      foodItemsList.innerHTML = items.length > 0 ? 
+        items.map(item => `<li class="py-1">${item}</li>`).join('') : 
+        `<li class="py-1 text-gray-500">No items available</li>`;
+    }
+
+    document.getElementById('add-food').addEventListener('click', function() {
+      const foodItemInput = document.getElementById('food-item');
+      const mealTimeSelect = document.getElementById('meal-time');
+      const dietSelect = document.getElementById('diet');
+      const foodItem = foodItemInput.value.trim();
+      const mealTime = mealTimeSelect.value;
+      const diet = dietSelect.value;
+
+      if (foodItem) {
+        foodItems[diet][mealTime].push(foodItem);
+        saveToLocalStorage();
+        updateFoodList();
+        foodItemInput.value = '';
+      }
+    });
+
+    document.getElementById('generate-meal').addEventListener('click', function() {
+      const mealTime = document.getElementById('meal-time-select').value;
+      const diet = document.getElementById('diet-select').value;
+      const items = foodItems[diet][mealTime];
+      const resultContainer = document.getElementById('result');
+      const spinner = document.getElementById('spinner');
+      
+      if (items.length < 10) {
+        document.getElementById('modal').classList.add('active');
+        return;
+      }
+      
+      spinner.classList.remove('hidden');
+      resultContainer.innerHTML = '';
+      
+      setTimeout(function() {
+        spinner.classList.add('hidden');
+        const randomMeal = items[Math.floor(Math.random() * items.length)];
+        resultContainer.innerHTML = `<p>How about trying <strong>${randomMeal}</strong> for ${mealTime}?</p>`;
+      }, 2000);
+    });
+
+    document.getElementById('close-modal').addEventListener('click', function() {
+      document.getElementById('modal').classList.remove('active');
+    });
+
+    document.getElementById('view-all').addEventListener('click', function() {
+      const diet = document.getElementById('diet-select').value;
+      const items = Object.values(foodItems[diet]).flat();
+      const foodItemsList = document.getElementById('food-items');
+      
+      foodItemsList.innerHTML = items.length > 0 ? 
+        items.map(item => `<li class="py-1">${item}</li>`).join('') : 
+        `<li class="py-1 text-gray-500">No items available</li>`;
+    });
+
+    document.getElementById('view-breakfast').addEventListener('click', function() {
+      filterFoodItems('breakfast');
+    });
+
+    document.getElementById('view-lunch').addEventListener('click', function() {
+      filterFoodItems('lunch');
+    });
+
+    document.getElementById('view-dinner').addEventListener('click', function() {
+      filterFoodItems('dinner');
+    });
+
+    // Initialize the UI
+    updateFoodList();
+  </script>
+</body>
+</html>
